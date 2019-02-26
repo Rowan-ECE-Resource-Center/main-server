@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="./js/sendNewUser.js"></script>
+    <script type="text/javascript" src="./js/getUsers.js"></script>
+    </script>
+  </head>
+  <body>
+    <label for="first_name">First Name</label>
+    <input id="first_name" type="text"><br />
+    <label for="last_name">Last Name</label>
+    <input id="last_name" type="text"><br />
+    <label for="banner_id">Banner Id</label>
+    <input id="banner_id" type="text"><br />
+    <input name="sendInfo" type="submit" value="Add User"
+      onClick="sendNewUser()"><br />
+    <input name="getInfo" type="button" value="Get Users"
+      onClick="getUsers()"><br />
+    <div id="userReturn">
+      <table id="rtrndata"></table>
+    </div>
+  </body>
+</html>
