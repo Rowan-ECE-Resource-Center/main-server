@@ -18,6 +18,8 @@ input[type=text] {
   border: none;
   border-bottom: 2px solid #57150B;
   width: 100%;
+  font-family: 'Trebuchet MS';
+  font-size: 1em;
 }
 
 input[type=text]:focus {
