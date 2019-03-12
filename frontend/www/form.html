@@ -3,8 +3,10 @@
   <head>
     <meta charset="utf-8">
     <link rel="stylesheet" type="text/css" href="form.css">
+    <script type="text/javascript" src="./js/env.js"></script>
     <script type="text/javascript" src="./js/sendNewUser.js"></script>
     <script type="text/javascript" src="./js/getUsers.js"></script>
+    <script type="text/javascript" src="./js/getUserById.js"></script>
     </script>
   </head>
   <body>
@@ -41,7 +43,7 @@
       <input name="sendInfo" type="submit" value="Add User"
         onClick="sendNewUser()" class="button"><br />
       <input name="getInfo" type="button" value="Get Users"
-        onClick="getUsers()" class="button"><br />
+        onClick="getUserById()" class="button"><br />
     </div>
     <div id="userReturn">
       <table id="rtrndata"></table>

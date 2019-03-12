@@ -10,7 +10,7 @@ function sendNewUser()
   }
   console.log(newUser);
   var xhttp = new XMLHttpRequest();
-  xhttp.open("POST", "http://localhost:8000/users/", true);
+  xhttp.open("POST", database, true);
   xhttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
   xhttp.send(JSON.stringify(newUser));
 }
