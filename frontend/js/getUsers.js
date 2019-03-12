@@ -1,7 +1,7 @@
 function getUsers()
 {
   var xhttp = new XMLHttpRequest
-  
+
   // Response Parsing on state change
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
@@ -11,7 +11,6 @@ function getUsers()
 
       // Parse JSON object into variable
       var responseObject = JSON.parse(this.responseText);
-      console.log(responseObject.users);
 
       // Generate Table
       var usrRtrn = document.getElementById("userReturn");
@@ -22,7 +21,6 @@ function getUsers()
       var thd = document.createElement("thead");
       for (var i = 0; i < 4; i++) {
         var th = document.createElement("th");
-        console.log("data");
         switch (i) {
           case 0:
             th.innerHTML = "ID";
@@ -45,10 +43,8 @@ function getUsers()
       var tbod = document.createElement("tbody")
       for (var i = 0; i < responseObject.users.length; i++) {
         var trow = document.createElement("tr");
-        console.log("row");
         for (var j = 0; j < 4; j++) {
           var td = document.createElement("td");
-          console.log("data");
           switch (j) {
             case 0:
               td.innerHTML = responseObject.users[i].id;
