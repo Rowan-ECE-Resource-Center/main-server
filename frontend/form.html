@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="form.css">
+    <script type="text/javascript" src="./js/sendNewUser.js"></script>
+    <script type="text/javascript" src="./js/getUsers.js"></script>
+    </script>
+  </head>
+  <body>
+    <div id="banner">
+      <h1>People Database</h1>
+    </div>
+    <table id="form" style="margin-left:auto;margin-right:auto;">
+      <tr>
+        <td class="inputlabel">
+          <label for="first_name">First Name</label>
+        </td>
+        <td class="inputactual">
+          <input id="first_name" type="text">
+        </td>
+      </tr>
+      <tr>
+        <td class="inputlabel">
+          <label for="last_name">Last Name</label>
+        </td>
+        <td class="inputactual">
+          <input id="last_name" type="text">
+        </td>
+      </tr>
+      <tr>
+        <td class="inputlabel">
+          <label for="banner_id">Banner Id</label>
+        </td>
+        <td class="inputactual">
+          <input id="banner_id" type="text">
+        </td>
+      </tr>
+    </table>
+    <div id="buttons">
+      <input name="sendInfo" type="submit" value="Add User"
+        onClick="sendNewUser()" class="button"><br />
+      <input name="getInfo" type="button" value="Get Users"
+        onClick="getUsers()" class="button"><br />
+    </div>
+    <div id="userReturn">
+      <table id="rtrndata"></table>
+    </div>
+  </body>
+</html>
