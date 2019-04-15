@@ -7,6 +7,7 @@ use crate::search::SearchParseError;
 pub enum WebdevErrorKind {
     Database,
     Format,
+    AccessDenied,
     NotFound,
 }
 
@@ -21,6 +22,7 @@ impl std::fmt::Display for WebdevError {
         match self.kind {
             WebdevErrorKind::Database => write!(f, "Database error!"),
             WebdevErrorKind::Format => write!(f, "Format error!"),
+            WebdevErrorKind::AccessDenied => write!(f, "Accessed denied!"),
             WebdevErrorKind::NotFound => write!(f, "Not found!"),
         }
     }
@@ -95,6 +97,7 @@ impl From<WebdevError> for rouille::Response {
                 rouille::Response::text(e.to_string()).with_status_code(404)
             }
             WebdevErrorKind::Format => rouille::Response::text(e.to_string()).with_status_code(400),
+            WebdevErrorKind::AccessDenied => rouille::Response::text(e.to_string()).with_status_code(401),
             WebdevErrorKind::Database => {
                 rouille::Response::text(e.to_string()).with_status_code(500)
             }

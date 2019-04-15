@@ -76,7 +76,7 @@ fn main(){
 				error!("Bad file. Error {}",e);
 				return;
 			}
-	};		
+	};
 	//Go through each item in the iterator
 	for result in all_users.deserialize(){
 		//Check to see if it's valid
@@ -96,9 +96,8 @@ fn main(){
 		};
 		//Import new user into database
 		let import_user = UserRequest::CreateUser(new_user);
-		requests::handle_user(import_user, &connection);
+		requests::handle_user(import_user, Some(0), &connection);
 		user_count = user_count+1;
 	}
 	info!("Imported {} user(s)",user_count);
 }
-
