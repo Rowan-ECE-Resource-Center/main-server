@@ -1,8 +1,9 @@
 pub mod models;
 pub mod requests;
-pub mod schema;
+mod schema;
 
-use self::schema::users as users_schema;
+use self::schema::departments as departments_schema;
+use self::schema::user_departments as user_departments_schema;
 use diesel::expression::AsExpression;
 use diesel::expression::Expression;
 use diesel::mysql::Mysql;

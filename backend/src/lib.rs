@@ -7,4 +7,5 @@ extern crate diesel_migrations;
 
 pub mod errors;
 pub mod users;
+pub mod departments;
 pub mod search;

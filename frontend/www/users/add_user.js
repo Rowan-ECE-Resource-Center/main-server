@@ -28,7 +28,10 @@ function add_user(){
   xhttp.onreadystatechange = function() {
   if (this.readyState == 4 && this.status == 200) {
     document.getElementById("result").innerHTML = "User added!";
-  } else {
+  } else if(this.readyState !=4){
+    document.getElementById("result").innerHTML = "Sending...";
+  }else{
+    console.log("Ready State = "+this.readyState+" Status = "+this.status);
     document.getElementById("result").innerHTML ="Error adding user";
   }
   }

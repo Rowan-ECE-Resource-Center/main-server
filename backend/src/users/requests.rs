@@ -110,7 +110,8 @@ fn search_users(
 
         NullableSearch::NoSearch => {}
     }
-
+	
+	
     let found_users = users_query.load::<User>(database_connection)?;
     let user_list = UserList { users: found_users };
 

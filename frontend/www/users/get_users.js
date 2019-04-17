@@ -30,15 +30,30 @@ function get_users() {
 	}
   };
   console.log("first name: \""+fn + "\" lastname: \"" + ln+"\"");
-  if (fn !=="" && ln !==""){ 
-	xhttp.open("GET", baseip+"/users/?first_name_exact="+fn+"&last_name_exact="+ln, true);
-  }else if(fn !==""){
-	xhttp.open("GET", baseip+"/users/?first_name_exact="+fn, true);  
-  }else if(ln !==""){
-	  xhttp.open("GET", baseip+"/users/?last_name_exact="+ln, true);
+  var is_exact = document.getElementById("exact");
+  //Exact Searches
+  if (is_exact.checked){
+    if (fn !=="" && ln !==""){ 
+  	xhttp.open("GET", baseip+"/users/?first_name=exact,"+fn+"&last_name=exact,"+ln, true);
+    }else if(fn !==""){
+  	xhttp.open("GET", baseip+"/users/?first_name=exact,"+fn, true);  
+    }else if(ln !==""){
+  	  xhttp.open("GET", baseip+"/users/?last_name=exact,"+ln, true);
+    }else {
+  	  console.log("Empty Search");
+  	  xhttp.open("GET", baseip+"/users/", true);
+    }
   }else {
-	  console.log("Empty Search");
-	  xhttp.open("GET", baseip+"/users/", true);
+    if (fn !=="" && ln !==""){ 
+  	xhttp.open("GET", baseip+"/users/?first_name=partial,"+fn+"&last_name=partial,"+ln, true);
+    }else if(fn !==""){
+  	xhttp.open("GET", baseip+"/users/?first_name=partial,"+fn, true);  
+    }else if(ln !==""){
+  	  xhttp.open("GET", baseip+"/users/?last_name=partial,"+ln, true);
+    }else {
+  	  console.log("Empty Search");
+  	  xhttp.open("GET", baseip+"/users/", true);
+    }
   }
   xhttp.send();
 }

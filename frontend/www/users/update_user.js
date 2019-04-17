@@ -46,6 +46,8 @@ function update_user(){
   if (this.readyState == 4 && this.status == 204) {
     document.getElementById("result").innerHTML = "User Editted!";
      get_user_from_url();        
+  } else if(this.readyState !=4){
+    document.getElementById("result").innerHTML = "Sending...";
   } else {
     document.getElementById("result").innerHTML ="Error editted user";
   }}

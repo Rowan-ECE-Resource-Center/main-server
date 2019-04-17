@@ -17,7 +17,8 @@
             <input type="text" id="firstname" value=""><br>
             Last name:<br>
             <input type="text" id="lastname" value=""><br><br>
-            <input type="submit" action="#" onclick="get_users();return false" value="Search"/><br>
+            <input type="checkbox" name="exact" value="exact search" id="exact"><label for="exact"> exact search</label><br>
+            <input type="button" onclick="get_users()" value="Search"/><br>
         </form>
 
         <table id="user"></table>

@@ -22,6 +22,10 @@ use web_dev::errors::WebdevErrorKind;
 use web_dev::users::models::UserRequest;
 use web_dev::users::requests::handle_user;
 
+use web_dev::departments::models::{UserDepartmentRequest,DepartmentRequest};
+use web_dev::departments::requests::{handle_user_department,handle_department};
+
+
 embed_migrations!();
 
 fn main() {
@@ -107,7 +111,24 @@ fn handle_request(
                 Err(err) => rouille::Response::from(err),
             },
         }
-    } else {
+    }else if let Some(user_department_request) = request.remove_prefix("/user_departments") {
+        match UserDepartmentRequest::from_rouille(&user_department_request) {
+            Err(err) => rouille::Response::from(err),
+            Ok(user_department_request) => match handle_user_department(user_department_request, database_connection) {
+                Ok(user_department_response) => user_department_response.to_rouille(),
+                Err(err) => rouille::Response::from(err),
+            },
+        }
+    }else if let Some(department_request) = request.remove_prefix("/departments") {
+        match DepartmentRequest::from_rouille(&department_request) {
+            Err(err) => rouille::Response::from(err),
+            Ok(department_request) => match handle_department(department_request, database_connection) {
+                Ok(department_response) => department_response.to_rouille(),
+                Err(err) => rouille::Response::from(err),
+            },
+        }
+    }
+	else {
         rouille::Response::empty_404()
     }
 }
