@@ -1,3 +1,4 @@
+
 use csv;
 use diesel::prelude::*;
 use diesel::MysqlConnection;
@@ -104,3 +105,4 @@ fn main() {
     }
     info!("Imported {} user(s)", user_count);
 }
+

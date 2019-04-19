@@ -85,7 +85,6 @@ fn create_access(
         Err(WebdevError::new(WebdevErrorKind::Database))
     }
 }
-
 fn update_access(
     id: u64,
     access: PartialAccess,
