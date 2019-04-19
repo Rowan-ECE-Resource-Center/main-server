@@ -30,12 +30,12 @@ pub struct NewAccess {
 #[derive(AsChangeset, Serialize, Deserialize)]
 #[table_name = "access"]
 pub struct PartialAccess {
-    pub access_name: String,
+    pub access_name: Option<String>,
 }
 
 pub enum AccessRequest {
     GetAccess(u64),                   //id of access name searched
-    CreateAccess(NewAccess), //new access type of some name to be created
+    CreateAccess(NewAccess),          //new access type of some name to be created
     UpdateAccess(u64, PartialAccess), //Contains id to be changed to new access_name
     DeleteAccess(u64),                //if of access to be deleted
 }
@@ -112,8 +112,8 @@ pub struct NewUserAccess {
 #[derive(AsChangeset, Serialize, Deserialize)]
 #[table_name = "user_access"]
 pub struct PartialUserAccess {
-    pub access_id: u64,
-    pub user_id: u64,
+    pub access_id: Option<u64>,
+    pub user_id: Option<u64>,
     pub permission_level: Option<Option<String>>,
 }
 
@@ -126,10 +126,10 @@ pub struct SearchUserAccess {
 pub enum UserAccessRequest {
     SearchAccess(SearchUserAccess), //list of users with access id or (?) name
     GetAccess(u64),                 //get individual access entry from its id
-    CheckAccess(u64, u64), //entry allowing user of user_id to perform action of action_id
-    CreateAccess(NewUserAccess), //entry to add to database
+    CheckAccess(u64, String),       //entry allowing user of user_id to perform action of action_id
+    CreateAccess(NewUserAccess),    //entry to add to database
     UpdateAccess(u64, PartialUserAccess), //entry to update with new information
-    DeleteAccess(u64),     //entry to delete from database
+    DeleteAccess(u64),              //entry to delete from database
 }
 
 impl UserAccessRequest {
@@ -143,7 +143,6 @@ impl UserAccessRequest {
 
         router!(request,
             (GET) (/) => {
-
                 let mut access_id_search = Search::NoSearch;
                 let mut user_id_search = Search::NoSearch;
                 let mut permission_level_search = NullableSearch::NoSearch;
@@ -168,8 +167,8 @@ impl UserAccessRequest {
                 Ok(UserAccessRequest::GetAccess(permission_id))
             },
 
-            (GET) (/{user_id:u64}/{access_id: u64}) => {
-                Ok(UserAccessRequest::CheckAccess(user_id, access_id))
+            (GET) (/{user_id:u64}/{access_name: String}) => {
+                Ok(UserAccessRequest::CheckAccess(user_id, access_name))
             },
 
             (POST) (/) => {
