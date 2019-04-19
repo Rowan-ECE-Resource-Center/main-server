@@ -32,8 +32,11 @@ fn main() {
     //Diesel things
     dotenv().ok();
 
-    simplelog::TermLogger::init(simplelog::LevelFilter::Trace, simplelog::Config::default())
-        .unwrap();
+    simplelog::TermLogger::init(
+        simplelog::LevelFilter::Trace,
+        simplelog::Config::default(),
+    )
+    .unwrap();
 
     info!("Connecting to database");
 
@@ -96,7 +99,7 @@ fn main() {
         };
         //Import new user into database
         let import_user = UserRequest::CreateUser(new_user);
-        requests::handle_user(import_user, Some(0), &connection);
+        requests::handle_user(import_user, &connection);
         user_count = user_count + 1;
     }
     info!("Imported {} user(s)", user_count);

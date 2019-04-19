@@ -5,7 +5,7 @@ CREATE TABLE users (
   last_name VARCHAR(255) NOT NULL,
   banner_id INT(9) UNSIGNED NOT NULL,
   email VARCHAR(255)
-)
+);
 
 INSERT INTO users (first_name, last_name, banner_id) VALUES ("root", "root", 0);
 UPDATE users
