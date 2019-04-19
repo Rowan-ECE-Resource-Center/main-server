@@ -30,14 +30,14 @@ pub struct NewAccess {
 #[derive(AsChangeset, Serialize, Deserialize)]
 #[table_name = "access"]
 pub struct PartialAccess {
-    pub access_name: String,
+    pub access_name: Option<String>,
 }
 
 pub enum AccessRequest {
-    GetAccess(u64), //id of access name searched
-    CreateAccess(NewAccess), //new access type of some name to be created
+    GetAccess(u64),                   //id of access name searched
+    CreateAccess(NewAccess),          //new access type of some name to be created
     UpdateAccess(u64, PartialAccess), //Contains id to be changed to new access_name
-    DeleteAccess(u64), //if of access to be deleted
+    DeleteAccess(u64),                //if of access to be deleted
 }
 
 impl AccessRequest {
@@ -72,7 +72,6 @@ impl AccessRequest {
                 Err(WebdevError::new(WebdevErrorKind::NotFound))
             }
         ) //end router
-
     }
 }
 
@@ -89,8 +88,6 @@ impl AccessResponse {
         }
     }
 }
-
-
 
 #[derive(Queryable, Serialize, Deserialize)]
 pub struct UserAccess {
@@ -111,8 +108,8 @@ pub struct NewUserAccess {
 #[derive(AsChangeset, Serialize, Deserialize)]
 #[table_name = "user_access"]
 pub struct PartialUserAccess {
-    pub access_id: u64,
-    pub user_id: u64,
+    pub access_id: Option<u64>,
+    pub user_id: Option<u64>,
     pub permission_level: Option<Option<String>>,
 }
 
@@ -124,11 +121,11 @@ pub struct SearchUserAccess {
 
 pub enum UserAccessRequest {
     SearchAccess(SearchUserAccess), //list of users with access id or (?) name
-    GetAccess(u64), //get individual access entry from its id
-    CheckAccess(u64, String), //entry allowing user of user_id to perform action of action_id
-    CreateAccess(NewUserAccess), //entry to add to database
+    GetAccess(u64),                 //get individual access entry from its id
+    CheckAccess(u64, String),       //entry allowing user of user_id to perform action of action_id
+    CreateAccess(NewUserAccess),    //entry to add to database
     UpdateAccess(u64, PartialUserAccess), //entry to update with new information
-    DeleteAccess(u64), //entry to delete from database
+    DeleteAccess(u64),              //entry to delete from database
 }
 
 impl UserAccessRequest {
@@ -203,15 +200,17 @@ pub enum UserAccessResponse {
 impl UserAccessResponse {
     pub fn to_rouille(self) -> rouille::Response {
         match self {
-            UserAccessResponse::AccessState(state) => rouille::Response::text(if state {"true"} else {"false"}),
-            UserAccessResponse::ManyUserAccess(user_accesses) => rouille::Response::json(&user_accesses),
+            UserAccessResponse::AccessState(state) => {
+                rouille::Response::text(if state { "true" } else { "false" })
+            }
+            UserAccessResponse::ManyUserAccess(user_accesses) => {
+                rouille::Response::json(&user_accesses)
+            }
             UserAccessResponse::OneUserAccess(user_access) => rouille::Response::json(&user_access),
             UserAccessResponse::NoResponse => rouille::Response::empty_204(),
         }
     }
 }
-
-
 
 #[derive(Queryable, Serialize, Deserialize)]
 pub struct JoinedUserAccess {

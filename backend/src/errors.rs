@@ -97,7 +97,9 @@ impl From<WebdevError> for rouille::Response {
                 rouille::Response::text(e.to_string()).with_status_code(404)
             }
             WebdevErrorKind::Format => rouille::Response::text(e.to_string()).with_status_code(400),
-            WebdevErrorKind::AccessDenied => rouille::Response::text(e.to_string()).with_status_code(401),
+            WebdevErrorKind::AccessDenied => {
+                rouille::Response::text(e.to_string()).with_status_code(401)
+            }
             WebdevErrorKind::Database => {
                 rouille::Response::text(e.to_string()).with_status_code(500)
             }

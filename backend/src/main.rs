@@ -22,10 +22,10 @@ use diesel::MysqlConnection;
 
 use dotenv::dotenv;
 
-mod errors;
 mod access;
-mod users;
+mod errors;
 mod search;
+mod users;
 
 use web_dev::errors::WebdevError;
 use web_dev::errors::WebdevErrorKind;
@@ -33,8 +33,8 @@ use web_dev::errors::WebdevErrorKind;
 use web_dev::users::models::UserRequest;
 use web_dev::users::requests::handle_user;
 
-use access::requests::get_user;
 use access::models::{AccessRequest, UserAccessRequest};
+use access::requests::get_user;
 use access::requests::{handle_access, handle_user_access};
 
 embed_migrations!();
@@ -114,35 +114,42 @@ fn handle_request(
     request: &rouille::Request,
     database_connection: &MysqlConnection,
 ) -> rouille::Response {
-    let mut requested_user = None;
+    let mut requesting_user = None;
 
     if let Some(id_token) = request.header("id_token") {
-        requested_user = get_user(id_token, database_connection);
+        requesting_user = get_user(id_token, database_connection);
     }
 
     if let Some(user_request) = request.remove_prefix("/users") {
         match UserRequest::from_rouille(&user_request) {
             Err(err) => rouille::Response::from(err),
-            Ok(user_request) => match handle_user(user_request, requested_user, database_connection) {
-                Ok(user_response) => user_response.to_rouille(),
-                Err(err) => rouille::Response::from(err),
-            },
+            Ok(user_request) => {
+                match handle_user(user_request, requesting_user, database_connection) {
+                    Ok(user_response) => user_response.to_rouille(),
+                    Err(err) => rouille::Response::from(err),
+                }
+            }
         }
     } else if let Some(access_request) = request.remove_prefix("/access") {
         match AccessRequest::from_rouille(&access_request) {
             Err(err) => rouille::Response::from(err),
-            Ok(access_request) => match handle_access(access_request, requested_user, database_connection) {
-                Ok(access_response) => access_response.to_rouille(),
-                Err(err) => rouille::Response::from(err),
-            },
+            Ok(access_request) => {
+                match handle_access(access_request, requesting_user, database_connection) {
+                    Ok(access_response) => access_response.to_rouille(),
+                    Err(err) => rouille::Response::from(err),
+                }
+            }
         }
     } else if let Some(user_access_request) = request.remove_prefix("/user_access") {
         match UserAccessRequest::from_rouille(&user_access_request) {
             Err(err) => rouille::Response::from(err),
-            Ok(user_access_request) => match handle_user_access(user_access_request, requested_user, database_connection) {
-                Ok(user_access_response) => user_access_response.to_rouille(),
-                Err(err) => rouille::Response::from(err),
-            },
+            Ok(user_access_request) => {
+                match handle_user_access(user_access_request, requesting_user, database_connection)
+                {
+                    Ok(user_access_response) => user_access_response.to_rouille(),
+                    Err(err) => rouille::Response::from(err),
+                }
+            }
         }
     } else {
         rouille::Response::empty_404()

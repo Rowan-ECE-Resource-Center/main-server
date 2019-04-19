@@ -8,10 +8,10 @@ use diesel::QueryDsl;
 use diesel::RunQueryDsl;
 use diesel::TextExpressionMethods;
 
-use log::trace;
-use log::info;
-use log::warn;
 use log::error;
+use log::info;
+use log::trace;
+use log::warn;
 
 use crate::errors::WebdevError;
 use crate::errors::WebdevErrorKind;
@@ -28,13 +28,15 @@ use crate::users::schema::users as users_schema;
 
 pub fn handle_user(
     request: UserRequest,
-    requested_user: Option<User>,
-    database_connection: &MysqlConnection
+    requested_user: Option<u64>,
+    database_connection: &MysqlConnection,
 ) -> Result<UserResponse, WebdevError> {
     match request {
         UserRequest::SearchUsers(user) => {
             match check_to_run(requested_user, "GetUsers", database_connection) {
-                Ok(()) => search_users(user, database_connection).map(|u| UserResponse::ManyUsers(u)),
+                Ok(()) => {
+                    search_users(user, database_connection).map(|u| UserResponse::ManyUsers(u))
+                }
                 Err(e) => Err(e),
             }
         }
@@ -52,7 +54,9 @@ pub fn handle_user(
         }
         UserRequest::UpdateUser(id, user) => {
             match check_to_run(requested_user, "DeleteUsers", database_connection) {
-                Ok(()) => update_user(id, user, database_connection).map(|_| UserResponse::NoResponse),
+                Ok(()) => {
+                    update_user(id, user, database_connection).map(|_| UserResponse::NoResponse)
+                }
                 Err(e) => Err(e),
             }
         }
@@ -76,9 +80,7 @@ fn search_users(
             users_query = users_query.filter(users_schema::first_name.like(format!("{}%", s)))
         }
 
-        Search::Exact(s) => {
-            users_query = users_query.filter(users_schema::first_name.eq(s))
-        }
+        Search::Exact(s) => users_query = users_query.filter(users_schema::first_name.eq(s)),
 
         Search::NoSearch => {}
     }
@@ -88,9 +90,7 @@ fn search_users(
             users_query = users_query.filter(users_schema::last_name.like(format!("{}%", s)))
         }
 
-        Search::Exact(s) => {
-            users_query = users_query.filter(users_schema::last_name.eq(s))
-        }
+        Search::Exact(s) => users_query = users_query.filter(users_schema::last_name.eq(s)),
 
         Search::NoSearch => {}
     }
@@ -102,9 +102,7 @@ fn search_users(
             users_query = users_query.filter(users_schema::banner_id.eq(s))
         }
 
-        Search::Exact(s) => {
-            users_query = users_query.filter(users_schema::banner_id.eq(s))
-        }
+        Search::Exact(s) => users_query = users_query.filter(users_schema::banner_id.eq(s)),
 
         Search::NoSearch => {}
     }
@@ -114,9 +112,7 @@ fn search_users(
             users_query = users_query.filter(users_schema::email.like(format!("{}%", s)))
         }
 
-        NullableSearch::Exact(s) => {
-            users_query = users_query.filter(users_schema::email.eq(s))
-        }
+        NullableSearch::Exact(s) => users_query = users_query.filter(users_schema::email.eq(s)),
 
         NullableSearch::Some => {
             users_query = users_query.filter(users_schema::email.is_not_null());
