@@ -28,9 +28,6 @@ mod users;
 use web_dev::errors::WebdevError;
 use web_dev::errors::WebdevErrorKind;
 
-use web_dev::errors::WebdevError;
-use web_dev::errors::WebdevErrorKind;
-
 use web_dev::users::models::UserRequest;
 use web_dev::users::requests::handle_user;
 
