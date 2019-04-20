@@ -1,6 +1,12 @@
 #[macro_use]
 extern crate diesel_migrations;
 
+#[macro_use]
+extern crate diesel;
+
+#[macro_use]
+extern crate google_signin;
+
 use std::env;
 use std::sync::Mutex;
 use std::thread;
@@ -16,11 +22,24 @@ use diesel::MysqlConnection;
 
 use dotenv::dotenv;
 
+mod access;
+mod chemicals;
+mod errors;
+mod search;
+mod users;
+
 use web_dev::errors::WebdevError;
 use web_dev::errors::WebdevErrorKind;
 
 use web_dev::users::models::UserRequest;
 use web_dev::users::requests::handle_user;
+
+use access::models::{AccessRequest, UserAccessRequest};
+use access::requests::get_user;
+use access::requests::{handle_access, handle_user_access};
+
+use chemicals::models::{ChemicalInventoryRequest, ChemicalRequest};
+use chemicals::requests::{handle_chemical, handle_chemical_inventory};
 
 embed_migrations!();
 
@@ -56,7 +75,9 @@ fn main() {
     debug!("Connected to database");
 
     info!("Running migrations");
-    embedded_migrations::run(&connection);
+    if let Err(e) = embedded_migrations::run(&connection) {
+        warn!("Could not run migrations: {}", e);
+    }
 
     let connection_mutex = Mutex::new(connection);
 
@@ -99,13 +120,64 @@ fn handle_request(
     request: &rouille::Request,
     database_connection: &MysqlConnection,
 ) -> rouille::Response {
+    let mut requesting_user = None;
+
+    if let Some(id_token) = request.header("id_token") {
+        requesting_user = get_user(id_token, database_connection);
+    }
+
     if let Some(user_request) = request.remove_prefix("/users") {
         match UserRequest::from_rouille(&user_request) {
             Err(err) => rouille::Response::from(err),
-            Ok(user_request) => match handle_user(user_request, database_connection) {
-                Ok(user_response) => user_response.to_rouille(),
+            Ok(user_request) => {
+                match handle_user(user_request, requesting_user, database_connection) {
+                    Ok(user_response) => user_response.to_rouille(),
+                    Err(err) => rouille::Response::from(err),
+                }
+            }
+        }
+    } else if let Some(access_request) = request.remove_prefix("/access") {
+        match AccessRequest::from_rouille(&access_request) {
+            Err(err) => rouille::Response::from(err),
+            Ok(access_request) => {
+                match handle_access(access_request, requesting_user, database_connection) {
+                    Ok(access_response) => access_response.to_rouille(),
+                    Err(err) => rouille::Response::from(err),
+                }
+            }
+        }
+    } else if let Some(user_access_request) = request.remove_prefix("/user_access") {
+        match UserAccessRequest::from_rouille(&user_access_request) {
+            Err(err) => rouille::Response::from(err),
+            Ok(user_access_request) => {
+                match handle_user_access(user_access_request, requesting_user, database_connection)
+                {
+                    Ok(user_access_response) => user_access_response.to_rouille(),
+                    Err(err) => rouille::Response::from(err),
+                }
+            }
+        }
+    } else if let Some(chem_inventory_request_url) = request.remove_prefix("/chemical_inventory") {
+        match ChemicalInventoryRequest::from_rouille(&chem_inventory_request_url) {
+            Err(err) => rouille::Response::from(err),
+            Ok(chem_inventory_request) => match handle_chemical_inventory(
+                chem_inventory_request,
+                requesting_user,
+                database_connection,
+            ) {
+                Ok(chem_inventory_response) => chem_inventory_response.to_rouille(),
                 Err(err) => rouille::Response::from(err),
             },
+        }
+    } else if let Some(chemical_request_url) = request.remove_prefix("/chemical") {
+        match ChemicalRequest::from_rouille(&chemical_request_url) {
+            Err(err) => rouille::Response::from(err),
+            Ok(chemical_request) => {
+                match handle_chemical(chemical_request, requesting_user, database_connection) {
+                    Ok(chemical_response) => chemical_response.to_rouille(),
+                    Err(err) => rouille::Response::from(err),
+                }
+            }
         }
     } else {
         rouille::Response::empty_404()
