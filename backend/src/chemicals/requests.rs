@@ -16,40 +16,59 @@ use crate::errors::{WebdevError, WebdevErrorKind};
 use crate::search::Search;
 
 use super::models::{
-    Chemical, ChemicalInventory, ChemicalInventoryList,
-    ChemicalInventoryRequest, ChemicalInventoryResponse, ChemicalList,
-    ChemicalRequest, ChemicalResponse, NewChemical, NewChemicalInventory,
-    PartialChemical, PartialChemicalInventory, SearchChemical,
+    Chemical, ChemicalInventory, ChemicalInventoryList, ChemicalInventoryRequest,
+    ChemicalInventoryResponse, ChemicalList, ChemicalRequest, ChemicalResponse, NewChemical,
+    NewChemicalInventory, PartialChemical, PartialChemicalInventory, SearchChemical,
     SearchChemicalInventory,
 };
 
 use super::schema::chemical as chemical_schema;
 use super::schema::chemical_inventory as chemical_inventory_schema;
 
+use crate::access::requests::check_to_run;
+
 pub fn handle_chemical(
     request: ChemicalRequest,
+    requesting_user: Option<u64>,
     database_connection: &MysqlConnection,
 ) -> Result<ChemicalResponse, WebdevError> {
     match request {
         ChemicalRequest::Search(chemical) => {
-            search_chemical(chemical, database_connection)
-                .map(|c| ChemicalResponse::ManyChemical(c))
+            match check_to_run(requesting_user, "GetChemical", database_connection) {
+                Ok(()) => search_chemical(chemical, database_connection)
+                    .map(|c| ChemicalResponse::ManyChemical(c)),
+                Err(e) => Err(e),
+            }
         }
         ChemicalRequest::GetChemical(id) => {
-            get_chemical(id, database_connection)
-                .map(|c| ChemicalResponse::OneChemical(c))
+            match check_to_run(requesting_user, "GetChemical", database_connection) {
+                Ok(()) => {
+                    get_chemical(id, database_connection).map(|c| ChemicalResponse::OneChemical(c))
+                }
+                Err(e) => Err(e),
+            }
         }
         ChemicalRequest::CreateChemical(chemical) => {
-            create_chemical(chemical, database_connection)
-                .map(|c| ChemicalResponse::OneChemical(c))
+            match check_to_run(requesting_user, "CreateChemical", database_connection) {
+                Ok(()) => create_chemical(chemical, database_connection)
+                    .map(|c| ChemicalResponse::OneChemical(c)),
+                Err(e) => Err(e),
+            }
         }
         ChemicalRequest::UpdateChemical(id, chemical) => {
-            update_chemical(id, chemical, database_connection)
-                .map(|_| ChemicalResponse::NoResponse)
+            match check_to_run(requesting_user, "UpdateChemical", database_connection) {
+                Ok(()) => update_chemical(id, chemical, database_connection)
+                    .map(|_| ChemicalResponse::NoResponse),
+                Err(e) => Err(e),
+            }
         }
         ChemicalRequest::DeleteChemical(id) => {
-            delete_chemical(id, database_connection)
-                .map(|_| ChemicalResponse::NoResponse)
+            match check_to_run(requesting_user, "DeleteChemical", database_connection) {
+                Ok(()) => {
+                    delete_chemical(id, database_connection).map(|_| ChemicalResponse::NoResponse)
+                }
+                Err(e) => Err(e),
+            }
         }
     }
 }
@@ -62,40 +81,32 @@ fn search_chemical(
 
     match chemical_search.name {
         Search::Partial(s) => {
-            chemical_query = chemical_query
-                .filter(chemical_schema::name.like(format!("{}%", s)))
+            chemical_query = chemical_query.filter(chemical_schema::name.like(format!("{}%", s)))
         }
 
-        Search::Exact(s) => {
-            chemical_query = chemical_query.filter(chemical_schema::name.eq(s))
-        }
+        Search::Exact(s) => chemical_query = chemical_query.filter(chemical_schema::name.eq(s)),
 
         Search::NoSearch => {}
     }
 
     match chemical_search.purpose {
         Search::Partial(s) => {
-            chemical_query = chemical_query
-                .filter(chemical_schema::purpose.like(format!("{}%", s)))
+            chemical_query = chemical_query.filter(chemical_schema::purpose.like(format!("{}%", s)))
         }
 
-        Search::Exact(s) => {
-            chemical_query =
-                chemical_query.filter(chemical_schema::purpose.eq(s))
-        }
+        Search::Exact(s) => chemical_query = chemical_query.filter(chemical_schema::purpose.eq(s)),
 
         Search::NoSearch => {}
     }
 
     match chemical_search.company_name {
         Search::Partial(s) => {
-            chemical_query = chemical_query
-                .filter(chemical_schema::company_name.like(format!("{}%", s)))
+            chemical_query =
+                chemical_query.filter(chemical_schema::company_name.like(format!("{}%", s)))
         }
 
         Search::Exact(s) => {
-            chemical_query =
-                chemical_query.filter(chemical_schema::company_name.eq(s))
+            chemical_query = chemical_query.filter(chemical_schema::company_name.eq(s))
         }
 
         Search::NoSearch => {}
@@ -103,13 +114,12 @@ fn search_chemical(
 
     match chemical_search.ingredients {
         Search::Partial(s) => {
-            chemical_query = chemical_query
-                .filter(chemical_schema::ingredients.like(format!("{}%", s)))
+            chemical_query =
+                chemical_query.filter(chemical_schema::ingredients.like(format!("{}%", s)))
         }
 
         Search::Exact(s) => {
-            chemical_query =
-                chemical_query.filter(chemical_schema::ingredients.eq(s))
+            chemical_query = chemical_query.filter(chemical_schema::ingredients.eq(s))
         }
 
         Search::NoSearch => {}
@@ -117,20 +127,18 @@ fn search_chemical(
 
     match chemical_search.manual_link {
         Search::Partial(s) => {
-            chemical_query = chemical_query
-                .filter(chemical_schema::manual_link.like(format!("{}%", s)))
+            chemical_query =
+                chemical_query.filter(chemical_schema::manual_link.like(format!("{}%", s)))
         }
 
         Search::Exact(s) => {
-            chemical_query =
-                chemical_query.filter(chemical_schema::manual_link.eq(s))
+            chemical_query = chemical_query.filter(chemical_schema::manual_link.eq(s))
         }
 
         Search::NoSearch => {}
     }
 
-    let found_chemicals =
-        chemical_query.load::<Chemical>(database_connection)?;
+    let found_chemicals = chemical_query.load::<Chemical>(database_connection)?;
     let chemical_list = ChemicalList {
         chemicals: found_chemicals,
     };
@@ -138,10 +146,7 @@ fn search_chemical(
     Ok(chemical_list)
 }
 
-fn get_chemical(
-    id: u64,
-    database_connection: &MysqlConnection,
-) -> Result<Chemical, WebdevError> {
+fn get_chemical(id: u64, database_connection: &MysqlConnection) -> Result<Chemical, WebdevError> {
     let mut found_chemical = chemical_schema::table
         .filter(chemical_schema::id.eq(id))
         .load::<Chemical>(database_connection)?;
@@ -185,10 +190,7 @@ fn update_chemical(
     Ok(())
 }
 
-fn delete_chemical(
-    id: u64,
-    database_connection: &MysqlConnection,
-) -> Result<(), WebdevError> {
+fn delete_chemical(id: u64, database_connection: &MysqlConnection) -> Result<(), WebdevError> {
     diesel::delete(chemical_schema::table.filter(chemical_schema::id.eq(id)))
         .execute(database_connection)?;
 
@@ -197,28 +199,56 @@ fn delete_chemical(
 
 pub fn handle_chemical_inventory(
     request: ChemicalInventoryRequest,
+    requesting_user: Option<u64>,
     database_connection: &MysqlConnection,
 ) -> Result<ChemicalInventoryResponse, WebdevError> {
     match request {
         ChemicalInventoryRequest::SearchInventory(inventory) => {
-            search_chemical_inventory(inventory, database_connection)
-                .map(|c| ChemicalInventoryResponse::ManyInventoryEntries(c))
+            match check_to_run(requesting_user, "GetChemicalInventory", database_connection) {
+                Ok(()) => search_chemical_inventory(inventory, database_connection)
+                    .map(|c| ChemicalInventoryResponse::ManyInventoryEntries(c)),
+                Err(e) => Err(e),
+            }
         }
         ChemicalInventoryRequest::GetInventory(id) => {
-            get_chemical_inventory(id, database_connection)
-                .map(|c| ChemicalInventoryResponse::OneInventoryEntry(c))
+            match check_to_run(requesting_user, "GetChemicalInventory", database_connection) {
+                Ok(()) => get_chemical_inventory(id, database_connection)
+                    .map(|c| ChemicalInventoryResponse::OneInventoryEntry(c)),
+                Err(e) => Err(e),
+            }
         }
         ChemicalInventoryRequest::CreateInventory(inventory) => {
-            create_chemical_inventory(inventory, database_connection)
-                .map(|c| ChemicalInventoryResponse::OneInventoryEntry(c))
+            match check_to_run(
+                requesting_user,
+                "CreateChemicalInventory",
+                database_connection,
+            ) {
+                Ok(()) => create_chemical_inventory(inventory, database_connection)
+                    .map(|c| ChemicalInventoryResponse::OneInventoryEntry(c)),
+                Err(e) => Err(e),
+            }
         }
         ChemicalInventoryRequest::UpdateInventory(id, inventory) => {
-            update_chemical_inventory(id, inventory, database_connection)
-                .map(|_| ChemicalInventoryResponse::NoResponse)
+            match check_to_run(
+                requesting_user,
+                "UpdateChemicalInventory",
+                database_connection,
+            ) {
+                Ok(()) => update_chemical_inventory(id, inventory, database_connection)
+                    .map(|_| ChemicalInventoryResponse::NoResponse),
+                Err(e) => Err(e),
+            }
         }
         ChemicalInventoryRequest::DeleteInventory(id) => {
-            delete_chemical_inventory(id, database_connection)
-                .map(|_| ChemicalInventoryResponse::NoResponse)
+            match check_to_run(
+                requesting_user,
+                "DeleteChemicalInventory",
+                database_connection,
+            ) {
+                Ok(()) => delete_chemical_inventory(id, database_connection)
+                    .map(|_| ChemicalInventoryResponse::NoResponse),
+                Err(e) => Err(e),
+            }
         }
     }
 }
@@ -227,18 +257,17 @@ fn search_chemical_inventory(
     chemical_inventory_search: SearchChemicalInventory,
     database_connection: &MysqlConnection,
 ) -> Result<ChemicalInventoryList, WebdevError> {
-    let mut chemical_inventory_query =
-        chemical_inventory_schema::table.as_query().into_boxed();
+    let mut chemical_inventory_query = chemical_inventory_schema::table.as_query().into_boxed();
 
     match chemical_inventory_search.purchaser_id {
         Search::Partial(s) => {
-            chemical_inventory_query = chemical_inventory_query
-                .filter(chemical_inventory_schema::purchaser_id.eq(s))
+            chemical_inventory_query =
+                chemical_inventory_query.filter(chemical_inventory_schema::purchaser_id.eq(s))
         }
 
         Search::Exact(s) => {
-            chemical_inventory_query = chemical_inventory_query
-                .filter(chemical_inventory_schema::purchaser_id.eq(s))
+            chemical_inventory_query =
+                chemical_inventory_query.filter(chemical_inventory_schema::purchaser_id.eq(s))
         }
 
         Search::NoSearch => {}
@@ -246,13 +275,13 @@ fn search_chemical_inventory(
 
     match chemical_inventory_search.custodian_id {
         Search::Partial(s) => {
-            chemical_inventory_query = chemical_inventory_query
-                .filter(chemical_inventory_schema::custodian_id.eq(s))
+            chemical_inventory_query =
+                chemical_inventory_query.filter(chemical_inventory_schema::custodian_id.eq(s))
         }
 
         Search::Exact(s) => {
-            chemical_inventory_query = chemical_inventory_query
-                .filter(chemical_inventory_schema::custodian_id.eq(s))
+            chemical_inventory_query =
+                chemical_inventory_query.filter(chemical_inventory_schema::custodian_id.eq(s))
         }
 
         Search::NoSearch => {}
@@ -260,13 +289,13 @@ fn search_chemical_inventory(
 
     match chemical_inventory_search.chemical_id {
         Search::Partial(s) => {
-            chemical_inventory_query = chemical_inventory_query
-                .filter(chemical_inventory_schema::chemical_id.eq(s))
+            chemical_inventory_query =
+                chemical_inventory_query.filter(chemical_inventory_schema::chemical_id.eq(s))
         }
 
         Search::Exact(s) => {
-            chemical_inventory_query = chemical_inventory_query
-                .filter(chemical_inventory_schema::chemical_id.eq(s))
+            chemical_inventory_query =
+                chemical_inventory_query.filter(chemical_inventory_schema::chemical_id.eq(s))
         }
 
         Search::NoSearch => {}
@@ -274,15 +303,13 @@ fn search_chemical_inventory(
 
     match chemical_inventory_search.storage_location {
         Search::Partial(s) => {
-            chemical_inventory_query = chemical_inventory_query.filter(
-                chemical_inventory_schema::storage_location
-                    .like(format!("{}%", s)),
-            )
+            chemical_inventory_query = chemical_inventory_query
+                .filter(chemical_inventory_schema::storage_location.like(format!("{}%", s)))
         }
 
         Search::Exact(s) => {
-            chemical_inventory_query = chemical_inventory_query
-                .filter(chemical_inventory_schema::storage_location.eq(s))
+            chemical_inventory_query =
+                chemical_inventory_query.filter(chemical_inventory_schema::storage_location.eq(s))
         }
 
         Search::NoSearch => {}
@@ -290,21 +317,19 @@ fn search_chemical_inventory(
 
     match chemical_inventory_search.amount {
         Search::Partial(s) => {
-            chemical_inventory_query = chemical_inventory_query.filter(
-                chemical_inventory_schema::amount.like(format!("{}%", s)),
-            )
+            chemical_inventory_query = chemical_inventory_query
+                .filter(chemical_inventory_schema::amount.like(format!("{}%", s)))
         }
 
         Search::Exact(s) => {
-            chemical_inventory_query = chemical_inventory_query
-                .filter(chemical_inventory_schema::amount.eq(s))
+            chemical_inventory_query =
+                chemical_inventory_query.filter(chemical_inventory_schema::amount.eq(s))
         }
 
         Search::NoSearch => {}
     }
 
-    let found_entries = chemical_inventory_query
-        .load::<ChemicalInventory>(database_connection)?;
+    let found_entries = chemical_inventory_query.load::<ChemicalInventory>(database_connection)?;
     let inventory_list = ChemicalInventoryList {
         entries: found_entries,
     };
@@ -363,11 +388,8 @@ fn delete_chemical_inventory(
     id: u64,
     database_connection: &MysqlConnection,
 ) -> Result<(), WebdevError> {
-    diesel::delete(
-        chemical_inventory_schema::table
-            .filter(chemical_inventory_schema::id.eq(id)),
-    )
-    .execute(database_connection)?;
+    diesel::delete(chemical_inventory_schema::table.filter(chemical_inventory_schema::id.eq(id)))
+        .execute(database_connection)?;
 
     Ok(())
 }

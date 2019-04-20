@@ -46,11 +46,8 @@ embed_migrations!();
 fn main() {
     dotenv().ok();
 
-    simplelog::SimpleLogger::init(
-        simplelog::LevelFilter::Trace,
-        simplelog::Config::default(),
-    )
-    .unwrap();
+    simplelog::SimpleLogger::init(simplelog::LevelFilter::Trace, simplelog::Config::default())
+        .unwrap();
 
     info!("Connecting to database");
 
@@ -101,19 +98,14 @@ fn main() {
                     "POST, GET, DELETE, OPTIONS",
                 )
                 .with_additional_header("Access-Control-Allow-Origin", "*")
-                .with_additional_header(
-                    "Access-Control-Allow-Headers",
-                    "X-PINGOTHER, Content-Type",
-                )
+                .with_additional_header("Access-Control-Allow-Headers", "X-PINGOTHER, Content-Type")
                 .with_additional_header("Access-Control-Max-Age", "86400")
         } else {
             let current_connection = match connection_mutex.lock() {
                 Ok(c) => c,
                 Err(_e) => {
                     error!("Could not lock database");
-                    return rouille::Response::from(WebdevError::new(
-                        WebdevErrorKind::Database,
-                    ));
+                    return rouille::Response::from(WebdevError::new(WebdevErrorKind::Database));
                 }
             };
 
@@ -154,9 +146,7 @@ fn handle_request(
                 }
             }
         }
-    } else if let Some(user_access_request) =
-        request.remove_prefix("/user_access")
-    {
+    } else if let Some(user_access_request) = request.remove_prefix("/user_access") {
         match UserAccessRequest::from_rouille(&user_access_request) {
             Err(err) => rouille::Response::from(err),
             Ok(user_access_request) => {
@@ -167,30 +157,23 @@ fn handle_request(
                 }
             }
         }
-    } else if let Some(chem_inventory_request_url) =
-        request.remove_prefix("/chemical_inventory")
-    {
-        match ChemicalInventoryRequest::from_rouille(
-            &chem_inventory_request_url,
-        ) {
+    } else if let Some(chem_inventory_request_url) = request.remove_prefix("/chemical_inventory") {
+        match ChemicalInventoryRequest::from_rouille(&chem_inventory_request_url) {
             Err(err) => rouille::Response::from(err),
             Ok(chem_inventory_request) => match handle_chemical_inventory(
                 chem_inventory_request,
+                requesting_user,
                 database_connection,
             ) {
-                Ok(chem_inventory_response) => {
-                    chem_inventory_response.to_rouille()
-                }
+                Ok(chem_inventory_response) => chem_inventory_response.to_rouille(),
                 Err(err) => rouille::Response::from(err),
             },
         }
-    } else if let Some(chemical_request_url) =
-        request.remove_prefix("/chemical")
-    {
+    } else if let Some(chemical_request_url) = request.remove_prefix("/chemical") {
         match ChemicalRequest::from_rouille(&chemical_request_url) {
             Err(err) => rouille::Response::from(err),
             Ok(chemical_request) => {
-                match handle_chemical(chemical_request, database_connection) {
+                match handle_chemical(chemical_request, requesting_user, database_connection) {
                     Ok(chemical_response) => chemical_response.to_rouille(),
                     Err(err) => rouille::Response::from(err),
                 }

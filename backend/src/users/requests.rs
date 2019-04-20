@@ -65,6 +65,8 @@ pub fn handle_user(
                 Ok(()) => delete_user(id, database_connection).map(|_| UserResponse::NoResponse),
                 Err(e) => Err(e),
             }
+        }
+    }
 }
 
 fn search_users(
@@ -75,8 +77,7 @@ fn search_users(
 
     match user.first_name {
         Search::Partial(s) => {
-            users_query = users_query
-                .filter(users_schema::first_name.like(format!("{}%", s)))
+            users_query = users_query.filter(users_schema::first_name.like(format!("{}%", s)))
         }
 
         Search::Exact(s) => users_query = users_query.filter(users_schema::first_name.eq(s)),
@@ -86,8 +87,7 @@ fn search_users(
 
     match user.last_name {
         Search::Partial(s) => {
-            users_query = users_query
-                .filter(users_schema::last_name.like(format!("{}%", s)))
+            users_query = users_query.filter(users_schema::last_name.like(format!("{}%", s)))
         }
 
         Search::Exact(s) => users_query = users_query.filter(users_schema::last_name.eq(s)),
@@ -109,8 +109,7 @@ fn search_users(
 
     match user.email {
         NullableSearch::Partial(s) => {
-            users_query =
-                users_query.filter(users_schema::email.like(format!("{}%", s)))
+            users_query = users_query.filter(users_schema::email.like(format!("{}%", s)))
         }
 
         NullableSearch::Exact(s) => users_query = users_query.filter(users_schema::email.eq(s)),
@@ -132,10 +131,7 @@ fn search_users(
     Ok(user_list)
 }
 
-fn get_user(
-    id: u64,
-    database_connection: &MysqlConnection,
-) -> Result<User, WebdevError> {
+fn get_user(id: u64, database_connection: &MysqlConnection) -> Result<User, WebdevError> {
     let mut found_users = users_schema::table
         .filter(users_schema::id.eq(id))
         .load::<User>(database_connection)?;
@@ -146,10 +142,7 @@ fn get_user(
     }
 }
 
-fn create_user(
-    user: NewUser,
-    database_connection: &MysqlConnection,
-) -> Result<User, WebdevError> {
+fn create_user(user: NewUser, database_connection: &MysqlConnection) -> Result<User, WebdevError> {
     diesel::insert_into(users_schema::table)
         .values(user)
         .execute(database_connection)?;
@@ -177,10 +170,7 @@ fn update_user(
     Ok(())
 }
 
-fn delete_user(
-    id: u64,
-    database_connection: &MysqlConnection,
-) -> Result<(), WebdevError> {
+fn delete_user(id: u64, database_connection: &MysqlConnection) -> Result<(), WebdevError> {
     diesel::delete(users_schema::table.filter(users_schema::id.eq(id)))
         .execute(database_connection)?;
 

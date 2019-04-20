@@ -20,7 +20,17 @@ INSERT INTO access (access_name) VALUES
   ("GetUserAccess"),
   ("CreateUserAccess"),
   ("UpdateUserAccess"),
-  ("DeleteUserAccess");
+  ("DeleteUserAccess"),
+
+  ("GetChemical"),
+  ("CreateChemical"),
+  ("UpdateChemical"),
+  ("DeleteChemical"),
+
+  ("GetChemicalInventory"),
+  ("CreateChemicalInventory"),
+  ("UpdateChemicalInventory"),
+  ("DeleteChemicalInventory");
 
 CREATE TABLE user_access (
   permission_id SERIAL PRIMARY KEY,

@@ -41,9 +41,7 @@ pub enum AccessRequest {
 }
 
 impl AccessRequest {
-    pub fn from_rouille(
-        request: &rouille::Request,
-    ) -> Result<AccessRequest, WebdevError> {
+    pub fn from_rouille(request: &rouille::Request) -> Result<AccessRequest, WebdevError> {
         trace!("Creating AccessRequest from {:#?}", request);
 
         router!(request,
@@ -85,9 +83,7 @@ pub enum AccessResponse {
 impl AccessResponse {
     pub fn to_rouille(self) -> rouille::Response {
         match self {
-            AccessResponse::OneAccess(access) => {
-                rouille::Response::json(&access)
-            }
+            AccessResponse::OneAccess(access) => rouille::Response::json(&access),
             AccessResponse::NoResponse => rouille::Response::empty_204(),
         }
     }
@@ -133,13 +129,10 @@ pub enum UserAccessRequest {
 }
 
 impl UserAccessRequest {
-    pub fn from_rouille(
-        request: &rouille::Request,
-    ) -> Result<UserAccessRequest, WebdevError> {
+    pub fn from_rouille(request: &rouille::Request) -> Result<UserAccessRequest, WebdevError> {
         trace!("Creating UserAccessRequest from {:#?}", request);
 
-        let url_queries =
-            form_urlencoded::parse(request.raw_query_string().as_bytes());
+        let url_queries = form_urlencoded::parse(request.raw_query_string().as_bytes());
 
         router!(request,
             (GET) (/) => {
@@ -213,9 +206,7 @@ impl UserAccessResponse {
             UserAccessResponse::ManyUserAccess(user_accesses) => {
                 rouille::Response::json(&user_accesses)
             }
-            UserAccessResponse::OneUserAccess(user_access) => {
-                rouille::Response::json(&user_access)
-            }
+            UserAccessResponse::OneUserAccess(user_access) => rouille::Response::json(&user_access),
             UserAccessResponse::NoResponse => rouille::Response::empty_204(),
         }
     }

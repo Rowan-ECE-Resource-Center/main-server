@@ -42,10 +42,7 @@ impl WebdevError {
         WebdevError { kind, source: None }
     }
 
-    pub fn with_source(
-        kind: WebdevErrorKind,
-        source: Box<dyn Error>,
-    ) -> WebdevError {
+    pub fn with_source(kind: WebdevErrorKind, source: Box<dyn Error>) -> WebdevError {
         WebdevError {
             kind,
             source: Some(source),

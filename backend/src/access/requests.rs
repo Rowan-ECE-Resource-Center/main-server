@@ -18,10 +18,9 @@ use crate::errors::{WebdevError, WebdevErrorKind};
 use crate::search::{NullableSearch, Search};
 
 use super::models::{
-    Access, AccessRequest, AccessResponse, JoinedUserAccess,
-    JoinedUserAccessList, NewAccess, NewUserAccess, PartialAccess,
-    PartialUserAccess, SearchUserAccess, UserAccess, UserAccessRequest,
-    UserAccessResponse,
+    Access, AccessRequest, AccessResponse, JoinedUserAccess, JoinedUserAccessList, NewAccess,
+    NewUserAccess, PartialAccess, PartialUserAccess, SearchUserAccess, UserAccess,
+    UserAccessRequest, UserAccessResponse,
 };
 
 use crate::users::models::{SearchUser, User, UserList, UserRequest, UserResponse};
@@ -123,10 +122,7 @@ pub fn handle_access(
     }
 }
 
-fn get_access(
-    id: u64,
-    database_connection: &MysqlConnection,
-) -> Result<Access, WebdevError> {
+fn get_access(id: u64, database_connection: &MysqlConnection) -> Result<Access, WebdevError> {
     let mut found_access = access_schema::table
         .filter(access_schema::id.eq(id))
         .load::<Access>(database_connection)?;
@@ -171,10 +167,7 @@ fn update_access(
     Ok(())
 }
 
-fn delete_access(
-    id: u64,
-    database_connection: &MysqlConnection,
-) -> Result<(), WebdevError> {
+fn delete_access(id: u64, database_connection: &MysqlConnection) -> Result<(), WebdevError> {
     diesel::delete(access_schema::table.filter(access_schema::id.eq(id)))
         .execute(database_connection)?;
 
@@ -248,13 +241,11 @@ fn search_user_access(
 
     match user_access_search.access_id {
         Search::Partial(s) => {
-            user_access_query =
-                user_access_query.filter(user_access_schema::access_id.eq(s))
+            user_access_query = user_access_query.filter(user_access_schema::access_id.eq(s))
         }
 
         Search::Exact(s) => {
-            user_access_query =
-                user_access_query.filter(user_access_schema::access_id.eq(s))
+            user_access_query = user_access_query.filter(user_access_schema::access_id.eq(s))
         }
 
         Search::NoSearch => {}
@@ -262,13 +253,11 @@ fn search_user_access(
 
     match user_access_search.user_id {
         Search::Partial(s) => {
-            user_access_query =
-                user_access_query.filter(user_access_schema::user_id.eq(s))
+            user_access_query = user_access_query.filter(user_access_schema::user_id.eq(s))
         }
 
         Search::Exact(s) => {
-            user_access_query =
-                user_access_query.filter(user_access_schema::user_id.eq(s))
+            user_access_query = user_access_query.filter(user_access_schema::user_id.eq(s))
         }
 
         Search::NoSearch => {}
@@ -276,9 +265,8 @@ fn search_user_access(
 
     match user_access_search.permission_level {
         NullableSearch::Partial(s) => {
-            user_access_query = user_access_query.filter(
-                user_access_schema::permission_level.like(format!("{}%", s)),
-            )
+            user_access_query = user_access_query
+                .filter(user_access_schema::permission_level.like(format!("{}%", s)))
         }
 
         NullableSearch::Exact(s) => {
@@ -297,10 +285,9 @@ fn search_user_access(
 
         NullableSearch::NoSearch => {}
     }
-  
-    let found_access_entries =
-        user_access_query.load::<JoinedUserAccess>(database_connection)?;
-  
+
+    let found_access_entries = user_access_query.load::<JoinedUserAccess>(database_connection)?;
+
     let joined_list = JoinedUserAccessList {
         entries: found_access_entries,
     };
@@ -399,15 +386,9 @@ fn update_user_access(
     Ok(())
 }
 
-fn delete_user_access(
-    id: u64,
-    database_connection: &MysqlConnection,
-) -> Result<(), WebdevError> {
-    diesel::delete(
-        user_access_schema::table
-            .filter(user_access_schema::permission_id.eq(id)),
-    )
-    .execute(database_connection)?;
+fn delete_user_access(id: u64, database_connection: &MysqlConnection) -> Result<(), WebdevError> {
+    diesel::delete(user_access_schema::table.filter(user_access_schema::permission_id.eq(id)))
+        .execute(database_connection)?;
 
     Ok(())
 }
